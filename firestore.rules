@@ -1,0 +1,142 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth.uid != null;
+    }
+
+    function isPublic() {
+      return resource.data.visibility == 'public';
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    function existsUser(userId) {
+     return exists(/databases/$(database)/documents/users/$(userId ? userId : request.auth.uid))
+    }
+
+    match /users/{userId} {
+      function checkUserFields() {
+        let requestData = request.resource.data;
+
+        let isFieldNamesValid = 
+          requestData.keys().hasOnly(
+            ['photoUrl', 'displayName']
+          );
+
+        let isFieldTypesValid =
+          requestData.photoUrl is string && 
+          requestData.displayName is string;
+
+        return isFieldNamesValid && isFieldTypesValid;
+      }
+
+      allow read: if true;
+      allow create: if isOwner(userId) && checkUserFields();
+      allow update: if isOwner(userId) && checkUserFields();
+      allow delete: if isOwner(userId);
+    }
+
+    match /posts/{postId} {
+      function isOwnerResource() {
+        return get(/databases/$(database)/documents/posts/$(postId)).data.ownerRef.users == request.auth.uid
+      }
+
+      function checkPostFields() {
+        let requestData = request.resource.data;
+
+        let isFieldNamesValid = 
+          requestData.keys().hasOnly(
+            ['ownerRef', 'publishedAt', 'medias', 'description']
+          );
+
+        let isFieldTypesValid =
+          requestData.description is string && 
+          requestData.ownerRef is path && 
+          requestData.medias is list && 
+          requestData.medias.size() > 0 && 
+          requestData.medias.size() < 25 && 
+          requestData.publishedAt is timestamp;
+
+        let isMediasFieldTypesValid =        requestData.medias[0]  is string  && 
+          (requestData.medias.size() < 2  || requestData.medias[1]  is string) && 
+          (requestData.medias.size() < 3  || requestData.medias[2]  is string) && 
+          (requestData.medias.size() < 4  || requestData.medias[3]  is string) && 
+          (requestData.medias.size() < 5  || requestData.medias[4]  is string) && 
+          (requestData.medias.size() < 6  || requestData.medias[5]  is string) && 
+          (requestData.medias.size() < 7  || requestData.medias[6]  is string) && 
+          (requestData.medias.size() < 8  || requestData.medias[7]  is string) && 
+          (requestData.medias.size() < 9  || requestData.medias[8]  is string) && 
+          (requestData.medias.size() < 10 || requestData.medias[9]  is string) && 
+          (requestData.medias.size() < 11 || requestData.medias[10] is string) && 
+          (requestData.medias.size() < 12 || requestData.medias[11] is string) && 
+          (requestData.medias.size() < 13 || requestData.medias[12] is string) && 
+          (requestData.medias.size() < 14 || requestData.medias[13] is string) && 
+          (requestData.medias.size() < 15 || requestData.medias[14] is string) && 
+          (requestData.medias.size() < 16 || requestData.medias[15] is string) && 
+          (requestData.medias.size() < 17 || requestData.medias[16] is string) && 
+          (requestData.medias.size() < 18 || requestData.medias[17] is string) && 
+          (requestData.medias.size() < 19 || requestData.medias[18] is string) && 
+          (requestData.medias.size() < 20 || requestData.medias[19] is string) && 
+          (requestData.medias.size() < 21 || requestData.medias[20] is string) && 
+          (requestData.medias.size() < 22 || requestData.medias[21] is string) && 
+          (requestData.medias.size() < 23 || requestData.medias[22] is string) && 
+          (requestData.medias.size() < 24 || requestData.medias[23] is string);
+
+
+        return isFieldNamesValid && isFieldTypesValid && isMediasFieldTypesValid;
+      }
+
+      allow read: if true;
+      allow create: if signedIn() && checkPostFields();
+      allow update: if false;
+      allow delete: if isOwnerResource();
+    }
+
+    match /posts/{postId}/reactions/{reactionId} {
+      function checkPostReactionFields() {
+        let requestData = request.resource.data;
+        let isFieldNamesValid = requestData.keys().hasOnly(
+          ['type']
+        );
+
+        let isFieldTypesValid = requestData.type == true;
+        return isFieldNamesValid && isFieldTypesValid;
+      }
+
+      allow read: if true;
+      allow create: if reactionId == request.auth.uid && checkPostReactionFields();
+      allow update: if false;
+      allow delete: if reactionId == request.auth.uid;
+    }
+    
+    match /posts/{postId}/comments/{commentId} {
+       function isOwnerResource() {
+        return get(/databases/$(database)/documents/posts/$(postId)/comments/$(commentId)).data.ownerRef.users == request.auth.uid
+      }
+
+      function checkPostCommentFields() {
+        let requestData = request.resource.data;
+        let isFieldNamesValid = 
+          requestData.keys().hasOnly(
+            ['content', 'ownerRef', 'commentedAt']
+          );
+
+        let isFieldTypesValid = 
+          requestData.content is string && 
+          requestData.ownerRef is path && 
+          requestData.ownerRef.users == request.auth.uid && 
+          requestData.commentedAt is timestamp && 
+          requestData.commentedAt == request.time;
+        return isFieldNamesValid && isFieldTypesValid;
+      }
+
+      allow read: if true;
+      allow create: if signedIn() && checkPostCommentFields();
+      allow update: if false;
+      allow delete: if isOwnerResource();
+    }
+  }
+}
