@@ -91,6 +91,7 @@ export function CropperImageModal({
         <Box height="calc(100vh - 134px)">
           {src && <Cropper ref={cropperRef} src={src} className={'cropper'} />}
         </Box>
+
         <ModalFooter gap="2">
           <Button
             isLoading={isLoading}

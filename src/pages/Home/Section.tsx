@@ -26,6 +26,7 @@ export function SectionNews() {
     md: 'repeat(4, 1fr)',
     lg: 'repeat(6, 1fr)',
   });
+
   const [posts, setPosts] = useState<Array<IPost>>([]);
 
   useEffect(() => {
@@ -47,6 +48,7 @@ export function SectionNews() {
       <Heading as="h2" size="md" fontWeight="light">
         News
       </Heading>
+
       <Divider marginY="3" />
 
       <Grid templateColumns={templateColumns} gap="3">
@@ -66,6 +68,7 @@ export function SectionTags() {
       <Heading as="h2" size="md" fontWeight="light">
         Tags
       </Heading>
+
       <Divider marginY="3" />
     </Box>
   );
@@ -77,6 +80,7 @@ export function SectionRecommends() {
       <Heading as="h2" size="md" fontWeight="light">
         Recommends
       </Heading>
+
       <Divider marginY="3" />
     </Box>
   );

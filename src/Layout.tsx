@@ -101,6 +101,7 @@ export function Layout() {
           </Flex>
         </Container>
       </Box>
+
       <Box paddingTop="16" minHeight="100vh">
         {outlet}
       </Box>
